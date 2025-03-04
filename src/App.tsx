@@ -97,9 +97,10 @@ function App() {
   }
 
   // Update funding source amount
-  const updateFundingSourceAmount = (index: number, amount: number) => {
+  const updateFundingSourceAmount = (index: number, value: string) => {
     const updatedSources = [...fundingSources]
-    updatedSources[index].amount = amount
+    // Allow empty values for better UX
+    updatedSources[index].amount = value === '' ? 0 : Number(value)
     setFundingSources(updatedSources)
   }
 
@@ -122,7 +123,7 @@ function App() {
           <form onSubmit={handleSubmit(calculateMortgage)} className="p-6">
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
               <div className="sm:col-span-3">
-                <label htmlFor="propertyValue" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="propertyValue" id="property-value-label" className="block text-sm font-medium text-gray-700">
                   Property Value ($)
                 </label>
                 <div className="mt-1">
@@ -133,7 +134,15 @@ function App() {
                       <input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        id="propertyValue"
+                        data-testid="property-value-input"
+                        aria-labelledby="property-value-label"
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty string for better UX
+                          field.onChange(value === '' ? '' : Number(value));
+                        }}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       />
                     )}
@@ -153,7 +162,11 @@ function App() {
                       <input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number(value));
+                        }}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       />
                     )}
@@ -173,7 +186,11 @@ function App() {
                       <input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number(value));
+                        }}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       />
                     )}
@@ -193,8 +210,14 @@ function App() {
                       <input
                         type="number"
                         step="0.01"
+                        min="0"
+                        max="100"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number(value));
+                        }}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       />
                     )}
@@ -213,6 +236,7 @@ function App() {
                     render={({ field }) => (
                       <select
                         {...field}
+                        value={field.value}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                         className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                       >
@@ -270,15 +294,17 @@ function App() {
                           </div>
 
                           <div>
-                            <label htmlFor={`amount-${source.id}`} className="block text-sm font-medium text-gray-700">
+                            <label htmlFor={`amount-${source.id}`} id={`amount-label-${source.id}`} className="block text-sm font-medium text-gray-700">
                               Available Amount ($)
                             </label>
                             <input
                               type="number"
                               id={`amount-${source.id}`}
                               value={source.amount}
-                              onChange={(e) => updateFundingSourceAmount(idx, Number(e.target.value))}
+                              onChange={(e) => updateFundingSourceAmount(idx, e.target.value)}
                               disabled={!source.enabled}
+                              min="0"
+                              aria-labelledby={`amount-label-${source.id}`}
                               className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                             />
                           </div>
@@ -294,9 +320,11 @@ function App() {
                                 value={source.monthlyContribution}
                                 onChange={(e) => {
                                   const updated = [...fundingSources];
-                                  updated[idx].monthlyContribution = Number(e.target.value);
+                                  const value = e.target.value;
+                                  updated[idx].monthlyContribution = value === '' ? 0 : Number(value);
                                   setFundingSources(updated);
                                 }}
+                                min="0"
                                 disabled={!source.enabled}
                                 className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               />
@@ -305,7 +333,7 @@ function App() {
 
                           {source.id === 'existing_house' && (
                             <div>
-                              <label htmlFor="house-appreciation" className="block text-sm font-medium text-gray-700">
+                              <label htmlFor="house-appreciation" id="house-appreciation-label" className="block text-sm font-medium text-gray-700">
                                 Annual Appreciation Rate (%)
                               </label>
                               <input
@@ -315,9 +343,13 @@ function App() {
                                 value={source.appreciationRate}
                                 onChange={(e) => {
                                   const updated = [...fundingSources];
-                                  updated[idx].appreciationRate = Number(e.target.value);
+                                  const value = e.target.value;
+                                  updated[idx].appreciationRate = value === '' ? 0 : Number(value);
                                   setFundingSources(updated);
                                 }}
+                                min="0"
+                                max="100"
+                                aria-labelledby="house-appreciation-label"
                                 disabled={!source.enabled}
                                 className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               />
@@ -336,9 +368,12 @@ function App() {
                                 value={source.interestRate}
                                 onChange={(e) => {
                                   const updated = [...fundingSources];
-                                  updated[idx].interestRate = Number(e.target.value);
+                                  const value = e.target.value;
+                                  updated[idx].interestRate = value === '' ? 0 : Number(value);
                                   setFundingSources(updated);
                                 }}
+                                min="0"
+                                max="100"
                                 disabled={!source.enabled}
                                 className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               />
@@ -356,9 +391,11 @@ function App() {
                                 value={source.rentalIncome}
                                 onChange={(e) => {
                                   const updated = [...fundingSources];
-                                  updated[idx].rentalIncome = Number(e.target.value);
+                                  const value = e.target.value;
+                                  updated[idx].rentalIncome = value === '' ? 0 : Number(value);
                                   setFundingSources(updated);
                                 }}
+                                min="0"
                                 disabled={!source.enabled}
                                 className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                               />
@@ -378,9 +415,12 @@ function App() {
                                   value={source.appreciationRate}
                                   onChange={(e) => {
                                     const updated = [...fundingSources];
-                                    updated[idx].appreciationRate = Number(e.target.value);
+                                    const value = e.target.value;
+                                    updated[idx].appreciationRate = value === '' ? 0 : Number(value);
                                     setFundingSources(updated);
                                   }}
+                                  min="0"
+                                  max="100"
                                   disabled={!source.enabled}
                                   className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                 />
@@ -396,9 +436,12 @@ function App() {
                                   value={source.taxRate}
                                   onChange={(e) => {
                                     const updated = [...fundingSources];
-                                    updated[idx].taxRate = Number(e.target.value);
+                                    const value = e.target.value;
+                                    updated[idx].taxRate = value === '' ? 0 : Number(value);
                                     setFundingSources(updated);
                                   }}
+                                  min="0"
+                                  max="100"
                                   disabled={!source.enabled}
                                   className="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                 />

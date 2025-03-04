@@ -45,6 +45,22 @@ describe('Mortgage Calculator', () => {
     const calculateButton = screen.getByText('Calculate Mortgage')
     expect(calculateButton).toBeInTheDocument()
   })
+  
+  it('handles numeric inputs correctly', () => {
+    render(<App />)
+    
+    // Test property value input - use the ID instead of aria-label
+    const propertyValueInput = screen.getByTestId('property-value-input')
+    expect(propertyValueInput).toBeInTheDocument()
+    
+    // Check if we can update the value
+    fireEvent.change(propertyValueInput, { target: { value: '400000' } })
+    expect(propertyValueInput).toHaveValue(400000)
+    
+    // Check with leading zeros - should convert to number
+    fireEvent.change(propertyValueInput, { target: { value: '0400000' } })
+    expect(propertyValueInput).toHaveValue(400000)
+  })
 
   it('toggles funding sources when clicked', () => {
     render(<App />)
@@ -59,5 +75,33 @@ describe('Mortgage Calculator', () => {
     
     fireEvent.click(checkbox)
     expect(checkbox).toBeChecked()
+  })
+  
+  it('handles funding source numeric inputs', () => {
+    render(<App />)
+    
+    // First, click on the "Sell Existing House" tab and enable it
+    const houseTab = screen.getByText('Sell Existing House')
+    fireEvent.click(houseTab)
+    
+    const checkbox = screen.getByLabelText('Enable Sell Existing House')
+    fireEvent.click(checkbox)
+    
+    // Test amount input by getting all number inputs and selecting the first one
+    const inputs = screen.getAllByRole('spinbutton')
+    const amountInput = inputs[0] // First spinbutton in the tab panel
+    expect(amountInput).toBeInTheDocument()
+    
+    // Check if we can update the value
+    fireEvent.change(amountInput, { target: { value: '250000' } })
+    expect(amountInput).toHaveValue(250000)
+    
+    // Test appreciation rate input (second spinbutton in the tab panel)
+    const rateInput = inputs[1]
+    expect(rateInput).toBeInTheDocument()
+    
+    // Check if we can update the rate with decimal
+    fireEvent.change(rateInput, { target: { value: '4.5' } })
+    expect(rateInput).toHaveValue(4.5)
   })
 })
