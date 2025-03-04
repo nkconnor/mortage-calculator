@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Tab } from '@headlessui/react'
 import { 
@@ -46,7 +46,7 @@ function App() {
   const [paymentBreakdown, setPaymentBreakdown] = useState<{ name: string; value: number }[]>([])
 
   // Set up form
-  const { control, handleSubmit, watch } = useForm<MortgageCalculatorFormData>({
+  const { control, handleSubmit, watch, setValue } = useForm<MortgageCalculatorFormData>({
     defaultValues: {
       loanAmount: 300000,
       interestRate: 4.5,
@@ -59,11 +59,66 @@ function App() {
 
   // Watch form values for real-time calculation
   const formValues = watch()
+  
+  // Watch specific fields to update related fields
+  const watchPropertyValue = watch('propertyValue')
+  const watchDownPayment = watch('downPayment')
+  const watchLoanAmount = watch('loanAmount')
+  
+  // Use a ref to track if we're currently in an update to prevent loops
+  const isUpdating = React.useRef(false);
+  
+  // Effect to update loan amount when property value or down payment changes,
+  // but only if we're not already in the middle of an update cycle
+  useEffect(() => {
+    if (isUpdating.current) return;
+
+    if (watchPropertyValue && watchDownPayment !== undefined) {
+      // Calculate new loan amount based on property value minus down payment
+      const calculatedLoanAmount = Math.max(0, watchPropertyValue - watchDownPayment);
+      
+      // Only trigger update if there's a meaningful difference
+      if (Math.abs(calculatedLoanAmount - (watchLoanAmount || 0)) > 0.01) {
+        try {
+          isUpdating.current = true;
+          setValue('loanAmount', calculatedLoanAmount);
+        } finally {
+          // Always reset updating flag, even if error occurs
+          setTimeout(() => {
+            isUpdating.current = false;
+          }, 0);
+        }
+      }
+    }
+  }, [watchPropertyValue, watchDownPayment, setValue, watchLoanAmount])
+  
+  // Effect to update down payment when property value or loan amount changes
+  useEffect(() => {
+    if (isUpdating.current) return;
+    
+    if (watchPropertyValue && watchLoanAmount !== undefined) {
+      // Calculate new down payment based on property value minus loan amount
+      const calculatedDownPayment = Math.max(0, watchPropertyValue - watchLoanAmount);
+      
+      // Only trigger update if there's a meaningful difference
+      if (Math.abs(calculatedDownPayment - (watchDownPayment || 0)) > 0.01) {
+        try {
+          isUpdating.current = true;
+          setValue('downPayment', calculatedDownPayment);
+        } finally {
+          // Always reset updating flag, even if error occurs
+          setTimeout(() => {
+            isUpdating.current = false;
+          }, 0);
+        }
+      }
+    }
+  }, [watchPropertyValue, watchLoanAmount, setValue, watchDownPayment])
 
   // Calculate mortgage
   const calculateMortgage = (data: MortgageCalculatorFormData) => {
     // Calculate monthly payment
-    const principal = data.loanAmount - data.downPayment
+    const principal = data.loanAmount
     const monthlyRate = data.interestRate / 100 / 12
     const numberOfPayments = data.loanTerm * 12
     
@@ -162,6 +217,9 @@ function App() {
                       <input
                         type="number"
                         {...field}
+                        id="loanAmount"
+                        name="loanAmount"
+                        data-testid="loan-amount-input"
                         value={field.value}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -171,6 +229,9 @@ function App() {
                       />
                     )}
                   />
+                  <p className="mt-1 text-xs text-gray-500 italic">
+                    Property Value - Down Payment
+                  </p>
                 </div>
               </div>
 
@@ -186,6 +247,9 @@ function App() {
                       <input
                         type="number"
                         {...field}
+                        id="downPayment"
+                        name="downPayment"
+                        data-testid="down-payment-input"
                         value={field.value}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -195,6 +259,9 @@ function App() {
                       />
                     )}
                   />
+                  <p className="mt-1 text-xs text-gray-500 italic">
+                    Property Value - Loan Amount
+                  </p>
                 </div>
               </div>
 
