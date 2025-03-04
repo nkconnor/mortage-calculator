@@ -13,10 +13,16 @@ vi.mock('recharts', async () => {
   }
 })
 
+// Mock the DarkModeToggle component
+vi.mock('./components/DarkModeToggle', () => ({
+  default: () => <button data-testid="dark-mode-toggle">Toggle Dark Mode</button>
+}))
+
 describe('Mortgage Calculator', () => {
   // Just test that the app renders without crashing
-  it('renders the calculator app', () => {
+  it('renders the calculator app with dark mode toggle', () => {
     render(<App />)
     expect(screen.getByText('Advanced Mortgage Calculator')).toBeInTheDocument()
+    expect(screen.getByTestId('dark-mode-toggle')).toBeInTheDocument()
   })
 })

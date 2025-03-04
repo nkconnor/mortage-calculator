@@ -8,11 +8,24 @@ All notable changes to the Mortgage Calculator project will be documented in thi
 - Save/load functionality for different scenarios
 - Amortization schedule
 - Export results as PDF
-- Dark mode support
 - Mobile-responsive layout improvements
 
 ### Added
-- Initial project setup with Vite, React, and TypeScript
+- Dark mode support
+  - Toggle to switch between light and dark themes
+  - Automatic preference detection based on system settings
+  - Persistent theme preference using localStorage
+  - Proper contrast for all form elements
+
+### Fixed
+- Form input styling in dark mode
+  - Fixed white text on white background issue
+  - Improved contrast for form labels
+  - Added proper background colors for input fields
+  - Ensured smooth transitions between light and dark modes
+
+### Initial Features
+- Project setup with Vite, React, and TypeScript
 - Mortgage calculator core functionality
   - Property value, loan amount, down payment, interest rate, and loan term inputs
   - Monthly payment calculation
